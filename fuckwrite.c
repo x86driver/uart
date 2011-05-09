@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <sys/times.h>
+#include <sys/mman.h>
 
 int Uart_fd;
 FILE *gps_fp;
@@ -68,17 +69,31 @@ int uart_setup(unsigned int baud_rate)
 
 int main(int argc, char **argv)
 {
+    int fd, ret, size;
+    char *buf;
+
     printf("Build on %s\n", __TIMESTAMP__);
+    if (argc != 3) {
+        printf("Usage: %s [file] [size]\n", argv[0]);
+        exit(1);
+    }
 
     Uart_fd = open("/dev/ttyUSB2", O_RDWR);
-
     uart_setup(B57600);
 
-    char *buf = malloc(512);
-    memset(buf, 0x55, 512);
-    int ret = write(Uart_fd, buf, 512);
+    size = atoi(argv[2]);
+    fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(1);
+    }
+    buf = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+
+    ret = write(Uart_fd, buf, size);
     printf("Write %d bytes\n", ret);
 
+    munmap(buf, size);
+    close(fd);
     close(Uart_fd);
     return 0;
 }

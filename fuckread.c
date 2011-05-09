@@ -68,29 +68,36 @@ int uart_setup(unsigned int baud_rate)
 
 int main(int argc, char **argv)
 {
+    int ret = 0, count = 0, size;
+    char *buf;
+
     printf("Build on %s\n", __TIMESTAMP__);
+    if (argc != 2) {
+        printf("Usage: %s [size]\n", argv[0]);
+        exit(1);
+    }
 
     Uart_fd = open("/dev/tcc-uart5", O_RDWR);
-
     uart_setup(B57600);
 
-    int ret = 0, count = 0;
-    char *buf = malloc(512);
-    memset(buf, 0x55, 512);
+    size = atoi(argv[1]);
+
+    buf = malloc(size);
     do {
-        ret = read(Uart_fd, buf, 512);
-	count += ret;
-    } while (count < 512);
+        ret = read(Uart_fd, buf, size-count);
+        count += ret;
+    } while (count < size);
     printf("Read %d bytes\n", count);
 
     FILE *fp = fopen("a.bin", "wb");
     if (!fp) {
-	perror("fopen");
-	exit(1);
+        perror("fopen");
+        exit(1);
     }
-    ret = fwrite(buf, 512, 1, fp);
+    ret = fwrite(buf, size, 1, fp);
     printf("Write to a.bin, ret: %d\n", ret);
 
+    free(buf);
     close(Uart_fd);
     return 0;
 }
