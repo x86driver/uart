@@ -5,10 +5,13 @@ CC = gcc
 all:$(TARGET)
 
 fuckread: fuckread.c
-	$(ARMCC) -o $@ $< -Wall
+	$(ARMCC) -o $@ $< -Wall -static -g
 
 fuckwrite: fuckwrite.c
 	$(CC) -o $@ $< -Wall
 
 clean:
 	rm -rf $(TARGET)
+
+up: fuckread
+	adb push fuckread /system

@@ -74,13 +74,21 @@ int main(int argc, char **argv)
 
     uart_setup(B57600);
 
+    int ret = 0, count = 0;
     char *buf = malloc(512);
     memset(buf, 0x55, 512);
-    int ret = read(Uart_fd, buf, 512);
-    printf("Read %d bytes\n", ret);
+    do {
+        ret = read(Uart_fd, buf, 512);
+	count += ret;
+    } while (count < 512);
+    printf("Read %d bytes\n", count);
 
-    FILE *fp = fopen("a.bin", "rb");
-    ret = fwrite(fp, 512, 1, fp);
+    FILE *fp = fopen("a.bin", "wb");
+    if (!fp) {
+	perror("fopen");
+	exit(1);
+    }
+    ret = fwrite(buf, 512, 1, fp);
     printf("Write to a.bin, ret: %d\n", ret);
 
     close(Uart_fd);
