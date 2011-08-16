@@ -1,11 +1,11 @@
 TARGET = fuckread fuckwrite
-ARMCC = arm-none-linux-gnueabi-gcc
+#ARMCC = arm-none-linux-gnueabi-gcc
 CC = gcc
 
 all:$(TARGET)
 
 fuckread: fuckread.c
-	$(ARMCC) -o $@ $< -Wall -static -g
+	$(CC) -o $@ $< -Wall -g
 
 fuckwrite: fuckwrite.c
 	$(CC) -o $@ $< -Wall

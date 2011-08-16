@@ -1,3 +1,5 @@
 fuckread
 fuckwrite
 *.bin
+*.txt
+*.dSYM
