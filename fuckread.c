@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <sys/select.h>
 #include <sys/times.h>
+#include <time.h>
 
 int Uart_fd;
 FILE *gps_fp;
@@ -70,6 +71,9 @@ int main(int argc, char **argv)
 {
     int ret = 0, count = 0, size;
     char buf[1];
+    char temperature[128], *ptr;
+    time_t log_time;
+
     FILE *fp;
 
     printf("Build on %s\n", __TIMESTAMP__);
@@ -78,23 +82,35 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    Uart_fd = open("/dev/tty.usbserial-A600aeCk", O_RDWR | O_NOCTTY | O_NONBLOCK);
+    Uart_fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NONBLOCK);
     uart_setup(B9600);
 
     size = atoi(argv[1]);
 
+    memset(&temperature, 0, sizeof(temperature));
+
     fp = fopen("a.bin", "wb");
 
+    ptr = &temperature[0];
     do {
         ret = read(Uart_fd, &buf[0], 1);
-	if (ret < 0)
-		continue;
-	if (buf[0] == '\n')
-		count++;
-	fprintf(fp, "%c", buf[0]);
-	printf("Read %d record\r", count);
-	fflush(NULL);
-    } while (count < size);
+        if (ret < 0)
+		    continue;
+        if (buf[0] == '\r')
+            continue;
+    	else if (buf[0] != '\n') {
+            *ptr++ = buf[0];
+        } else {
+            count++;
+            *ptr = '\0';
+            log_time = time(NULL);
+            fprintf(fp, "%s %lu\n", temperature, log_time);
+            ptr = &temperature[0];
+        }
+
+    	printf("Read %d record\r", count);
+    	fflush(NULL);
+    } while (1);
 
     printf("Read %d record\n", count);
 
