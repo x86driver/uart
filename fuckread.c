@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     }
 
     Uart_fd = open("/dev/tty.usbserial-A600aeCk", O_RDWR | O_NOCTTY | O_NONBLOCK);
-    uart_setup(B19200);
+    uart_setup(B9600);
 
     size = atoi(argv[1]);
 
